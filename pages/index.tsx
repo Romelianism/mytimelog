@@ -17,8 +17,17 @@ import {
   Button,
   Skeleton,
   Center,
+  Group,
+  ActionIcon,
 } from "@mantine/core";
 import { useToggle } from "@mantine/hooks";
+import { MdPause, MdPlayArrow, MdStop } from "react-icons/md";
+import update from "immutability-helper";
+
+type ActiveActivity = {
+  activityIndex: number;
+  stop: boolean;
+};
 
 export default function Page() {
   const theme = useMantineTheme();
@@ -52,7 +61,9 @@ export default function Page() {
     "Prep",
     "Toilet",
   ];
-  const [activeActivities, setActiveActivities] = useState<number[]>([]);
+  const [activeActivities, setActiveActivities] = useState<ActiveActivity[]>(
+    []
+  );
   return (
     <AppShell
       styles={{
@@ -96,8 +107,32 @@ export default function Page() {
       }
     >
       <Stack justify="flex-start" spacing="xs">
-        {activeActivities.map((activeActivity) => (
-          <Button variant="outline">{activities[activeActivity]}</Button>
+        {activeActivities.map(({ activityIndex, stop }, index) => (
+          <Group position="apart">
+            {activities[activityIndex]}
+            <Group>
+              <ActionIcon
+                onClick={() =>
+                  setActiveActivities(
+                    update(activeActivities, {
+                      [index]: { stop: { $set: !stop } },
+                    })
+                  )
+                }
+              >
+                {stop ? <MdPlayArrow /> : <MdPause />}
+              </ActionIcon>
+              <ActionIcon
+                onClick={() =>
+                  setActiveActivities(
+                    activeActivities.filter((v, i) => i !== index)
+                  )
+                }
+              >
+                <MdStop />
+              </ActionIcon>
+            </Group>
+          </Group>
         ))}
       </Stack>
 
@@ -111,7 +146,13 @@ export default function Page() {
             <Button
               size="lg"
               variant="subtle"
-              onClick={() => setActiveActivities([...activeActivities, i])}
+              onClick={() =>
+                setActiveActivities(
+                  update(activeActivities, {
+                    $push: [{ activityIndex: i, stop: false }],
+                  })
+                )
+              }
             >
               <Stack justify="flex-start" spacing="xs">
                 <Center>

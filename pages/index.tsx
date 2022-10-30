@@ -52,7 +52,7 @@ export default function Page() {
     "Prep",
     "Toilet",
   ];
-  const [activeActivities, setActiveActivities] = useState<Number[]>([]);
+  const [activeActivities, setActiveActivities] = useState<number[]>([]);
   return (
     <AppShell
       styles={{

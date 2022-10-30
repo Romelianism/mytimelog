@@ -1,28 +1,23 @@
-import { useState } from "react";
 import {
+  ActionIcon,
   AppShell,
-  Navbar,
-  Header,
-  Footer,
-  Aside,
-  Text,
-  MediaQuery,
   Burger,
-  useMantineTheme,
-  Col,
-  Grid,
-  SimpleGrid,
-  Container,
-  Stack,
   Button,
-  Skeleton,
   Center,
   Group,
-  ActionIcon,
+  Header,
+  MediaQuery,
+  Navbar,
+  SimpleGrid,
+  Skeleton,
+  Stack,
+  Text,
+  useMantineTheme,
 } from "@mantine/core";
 import { useToggle } from "@mantine/hooks";
-import { MdPause, MdPlayArrow, MdStop } from "react-icons/md";
 import update from "immutability-helper";
+import { useState } from "react";
+import { MdPause, MdPlayArrow, MdStop } from "react-icons/md";
 
 type ActiveActivity = {
   activityIndex: number;

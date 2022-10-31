@@ -21,6 +21,7 @@ import {
 } from "@mantine/core";
 import { ListItem } from "@mantine/core/lib/List/ListItem/ListItem";
 import { useToggle } from "@mantine/hooks";
+import RealtimeDate from "components/RealtimeTime";
 import update from "immutability-helper";
 import { useRef, useState } from "react";
 import { MdPause, MdPlayArrow, MdStop } from "react-icons/md";
@@ -73,6 +74,17 @@ export default function Page() {
     []
   );
   const activities = useRef<Activity[]>([]); // to stop getting "TypeError: activities[activityIndex] is undefined" every rerender
+  const zeroPad = (number: number, places: number) =>
+    String(number).padStart(places, "0");
+  const formatTime = (milliseconds: number) => {
+    const s = milliseconds / 1000;
+    const m = s / 60;
+    const h = m / 60;
+    const seconds = zeroPad(Math.floor(s) % 60, 2);
+    const minutes = zeroPad(Math.floor(m) % 60, 2);
+    const hours = zeroPad(Math.floor(h), 2);
+    return `${hours}:${minutes}:${seconds}`;
+  };
 
   return (
     <AppShell
@@ -163,18 +175,43 @@ export default function Page() {
           .slice()
           .reverse() // reverse so newest ones are on top
           .map(({ activityIndex, pause }, index) => {
-            // reverse index because index is from reversed copy of array
-            index = activeActivities.length - 1 - index;
+            index = activeActivities.length - 1 - index; // reverse index because index is from reversed copy of array
+            const intervals = activities.current[activityIndex].intervals;
+            const latestInterval = intervals[intervals.length - 1];
 
             return (
               /* Active Activity */
               <Group key={activityIndex} position="apart">
-                {/* Activity Type */}
-                {
-                  activityTypes[
-                    activities.current[activityIndex].activityTypeIndex
-                  ]
-                }
+                <Group>
+                  {/* Activity Type */}
+                  <Text>
+                    {
+                      activityTypes[
+                        activities.current[activityIndex].activityTypeIndex
+                      ]
+                    }
+                  </Text>
+                  {/* Indicator */}
+                  <Text>
+                    {latestInterval.stop === null ? (
+                      /* Realtime indicator */
+                      <RealtimeDate
+                        format={(date) =>
+                          formatTime(
+                            date.valueOf() - intervals[0].start.valueOf()
+                          )
+                        }
+                        ms={1000}
+                      />
+                    ) : (
+                      /* Static indicator */
+                      formatTime(
+                        latestInterval.stop.valueOf() -
+                          intervals[0].start.valueOf()
+                      )
+                    )}
+                  </Text>
+                </Group>
                 {/* Pause and stop active activity */}
                 <Group>
                   {/* Pause and unpause active activity */}
@@ -184,8 +221,6 @@ export default function Page() {
                         ? // unpause active activity
                           () => {
                             // create new interval
-                            const intervals =
-                              activities.current[activityIndex].intervals;
                             intervals.push({ start: new Date(), stop: null });
 
                             // set pause to false
@@ -200,9 +235,7 @@ export default function Page() {
                         : // pause active activity
                           () => {
                             // stop latest interval
-                            const intervals =
-                              activities.current[activityIndex].intervals;
-                            intervals[intervals.length - 1].stop = new Date();
+                            latestInterval.stop = new Date();
 
                             // set pause to true
                             setActiveActivities(
@@ -221,9 +254,7 @@ export default function Page() {
                   <ActionIcon
                     onClick={() => {
                       // stop latest interval if not already
-                      const intervals =
-                        activities.current[activityIndex].intervals;
-                      intervals[intervals.length - 1].stop ??= new Date();
+                      latestInterval.stop ??= new Date();
 
                       // remove from active activities
                       setActiveActivities(

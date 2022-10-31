@@ -21,6 +21,7 @@ import RealtimeDate from "components/RealtimeTime";
 import update from "immutability-helper";
 import { useRef, useState } from "react";
 import { MdPause, MdPlayArrow, MdStop } from "react-icons/md";
+import formatTimeHMS from "utils/formatTimeHMS";
 
 type Activity = {
   activityTypeIndex: number;
@@ -62,7 +63,6 @@ const activityTypes = [
   "Prep",
   "Toilet",
 ];
-
 export default function Page() {
   const theme = useMantineTheme();
   const [opened, toggleOpened] = useToggle();
@@ -70,17 +70,6 @@ export default function Page() {
     []
   );
   const activities = useRef<Activity[]>([]); // to stop getting "TypeError: activities[activityIndex] is undefined" every rerender
-  const zeroPad = (number: number, places: number) =>
-    String(number).padStart(places, "0");
-  const formatTime = (milliseconds: number) => {
-    const s = milliseconds / 1000;
-    const m = s / 60;
-    const h = m / 60;
-    const seconds = zeroPad(Math.floor(s) % 60, 2);
-    const minutes = zeroPad(Math.floor(m) % 60, 2);
-    const hours = zeroPad(Math.floor(h), 2);
-    return `${hours}:${minutes}:${seconds}`;
-  };
 
   return (
     <AppShell
@@ -193,7 +182,7 @@ export default function Page() {
                       /* Realtime indicator */
                       <RealtimeDate
                         format={(date) =>
-                          formatTime(
+                          formatTimeHMS(
                             date.valueOf() - intervals[0].start.valueOf()
                           )
                         }
@@ -201,7 +190,7 @@ export default function Page() {
                       />
                     ) : (
                       /* Static indicator */
-                      formatTime(
+                      formatTimeHMS(
                         latestInterval.stop.valueOf() -
                           intervals[0].start.valueOf()
                       )

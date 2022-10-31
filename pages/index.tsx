@@ -5,21 +5,17 @@ import {
   Burger,
   Button,
   Center,
-  Container,
   Group,
   Header,
   List,
   MediaQuery,
-  Navbar,
   ScrollArea,
   SimpleGrid,
   Skeleton,
-  Space,
   Stack,
   Text,
   useMantineTheme,
 } from "@mantine/core";
-import { ListItem } from "@mantine/core/lib/List/ListItem/ListItem";
 import { useToggle } from "@mantine/hooks";
 import RealtimeDate from "components/RealtimeTime";
 import update from "immutability-helper";

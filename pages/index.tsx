@@ -12,6 +12,7 @@ import {
   ScrollArea,
   SimpleGrid,
   Skeleton,
+  Space,
   Stack,
   Text,
   useMantineTheme,
@@ -118,7 +119,25 @@ export default function Page() {
           style={{ left: 0 }}
         >
           {/* History text */}
-          <Text>History</Text>
+          <Group>
+            <Text size="lg">History</Text>
+            <Button
+              compact
+              onClick={() => {
+                if (
+                  window.confirm("Are you sure, you want to clear history?")
+                ) {
+                  localStorage.removeItem("activities");
+                  localStorage.removeItem("activeActivities");
+                  activities.current = [];
+                  setActiveActivities([]);
+                }
+              }}
+            >
+              Clear
+            </Button>
+          </Group>
+          <Space h="md" />
           {/* Activities display */}
           <ScrollArea>
             <Stack>

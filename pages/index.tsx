@@ -19,7 +19,7 @@ import {
 import { useToggle } from "@mantine/hooks";
 import RealtimeDate from "components/RealtimeTime";
 import update from "immutability-helper";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MdPause, MdPlayArrow, MdStop } from "react-icons/md";
 import formatTimeHMS from "utils/formatTimeHMS";
 
@@ -63,13 +63,36 @@ const activityTypes = [
   "Prep",
   "Toilet",
 ];
+
+let save = false;
+
 export default function Page() {
   const theme = useMantineTheme();
   const [opened, toggleOpened] = useToggle();
   const [activeActivities, setActiveActivities] = useState<ActiveActivity[]>(
     []
   );
-  const activities = useRef<Activity[]>([]); // to stop getting "TypeError: activities[activityIndex] is undefined" every rerender
+  const activities = useRef<Activity[]>([]);
+  useEffect(() => {
+    const activitiesStorage = localStorage.getItem("activities");
+    if (activitiesStorage !== null)
+      activities.current = JSON.parse(activitiesStorage, (key, value) => {
+        if (key === "start" || key === "stop") {
+          return value === null ? null : new Date(Date.parse(value));
+        }
+        return value;
+      });
+
+    const activeActivitiesStorage = localStorage.getItem("activeActivities");
+    if (activeActivitiesStorage !== null)
+      setActiveActivities(JSON.parse(activeActivitiesStorage));
+    save = true;
+  }, []);
+
+  if (save && typeof window !== "undefined") {
+    localStorage.setItem("activities", JSON.stringify(activities.current));
+    localStorage.setItem("activeActivities", JSON.stringify(activeActivities));
+  }
 
   return (
     <AppShell

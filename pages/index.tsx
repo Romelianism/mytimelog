@@ -301,10 +301,13 @@ export default function Page() {
                 );
               }}
             >
+              {/* Activity type */}
               <Stack justify="flex-start" spacing="xs">
+                {/* Activity type icon */}
                 <Center>
                   <Skeleton height={20} circle />
                 </Center>
+                {/* Activity type name */}
                 {activity}
               </Stack>
             </Button>

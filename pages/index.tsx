@@ -1,64 +1,79 @@
 import {
   ActionIcon,
   AppShell,
+  Aside,
   Burger,
   Button,
   Center,
+  Container,
   Group,
   Header,
+  List,
   MediaQuery,
   Navbar,
+  ScrollArea,
   SimpleGrid,
   Skeleton,
+  Space,
   Stack,
   Text,
   useMantineTheme,
 } from "@mantine/core";
+import { ListItem } from "@mantine/core/lib/List/ListItem/ListItem";
 import { useToggle } from "@mantine/hooks";
 import update from "immutability-helper";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MdPause, MdPlayArrow, MdStop } from "react-icons/md";
 
+type Activity = {
+  activityTypeIndex: number;
+  intervals: {
+    start: Date;
+    stop: Date | null;
+  }[];
+};
 type ActiveActivity = {
   activityIndex: number;
-  stop: boolean;
+  pause: boolean;
 };
+const activityTypes = [
+  "Sleep",
+  "Transport",
+  "Eat",
+  "Sport",
+  "Read",
+  "Work",
+  "Shop",
+  "Entertainment",
+  "Schoolwork",
+  "Cinema",
+  "Walk",
+  "Study",
+  "Internet",
+  "Bath",
+  "Class",
+  "Mix",
+  "Family Time",
+  "Phone Work",
+  "Waiting",
+  "Trip",
+  "Black",
+  "Gaming",
+  "Nan",
+  "Relax",
+  "Thinking",
+  "Prep",
+  "Toilet",
+];
 
 export default function Page() {
   const theme = useMantineTheme();
   const [opened, toggleOpened] = useToggle();
-  const activities = [
-    "Sleep",
-    "Transport",
-    "Eat",
-    "Sport",
-    "Read",
-    "Work",
-    "Shop",
-    "Entertainment",
-    "Schoolwork",
-    "Cinema",
-    "Walk",
-    "Study",
-    "Internet",
-    "Bath",
-    "Class",
-    "Mix",
-    "Family Time",
-    "Phone Work",
-    "Waiting",
-    "Trip",
-    "Black",
-    "Gaming",
-    "Nan",
-    "Relax",
-    "Thinking",
-    "Prep",
-    "Toilet",
-  ];
   const [activeActivities, setActiveActivities] = useState<ActiveActivity[]>(
     []
   );
+  const activities = useRef<Activity[]>([]); // to stop getting "TypeError: activities[activityIndex] is undefined" every rerender
+
   return (
     <AppShell
       styles={{
@@ -67,25 +82,66 @@ export default function Page() {
             theme.colorScheme === "dark"
               ? theme.colors.dark[8]
               : theme.colors.gray[0],
+          paddingLeft: "calc(var(--mantine-aside-width, 0px) + 16px)",
+          paddingRight: "calc(var(--mantine-navbar-width, 0px) + 16px)",
         },
       }}
       navbarOffsetBreakpoint="sm"
       asideOffsetBreakpoint="sm"
       navbar={
-        <Navbar
+        /* History */
+        <Aside
           p="md"
           hiddenBreakpoint="sm"
           hidden={!opened}
           width={{ sm: 200, lg: 300 }}
+          style={{ left: 0 }}
         >
-          <Text>Application navbar</Text>
-        </Navbar>
+          {/* History text */}
+          <Text>History</Text>
+          {/* Activities display */}
+          <ScrollArea>
+            <Stack>
+              {activities.current
+                .slice()
+                .reverse() // reverse so newest ones are on top
+                .map(({ activityTypeIndex, intervals }) => (
+                  /* Invervals display */
+                  <Stack>
+                    {activityTypes[activityTypeIndex]}
+                    <List>
+                      {intervals
+                        .slice()
+                        .reverse() // reverse so newest ones are on top
+                        .map(({ start, stop }) => (
+                          /* Stop and start display */
+                          <List.Item>
+                            <Group position="apart">
+                              <Stack>
+                                {/* Stop display */}
+                                <Text>
+                                  Stop: {stop?.toUTCString() ?? "Now"}
+                                </Text>
+                                {/* Start display */}
+                                <Text>Start: {start.toUTCString()}</Text>
+                              </Stack>
+                            </Group>
+                          </List.Item>
+                        ))}
+                    </List>
+                  </Stack>
+                ))}
+            </Stack>
+          </ScrollArea>
+        </Aside>
       }
       header={
+        /* Header */
         <Header height={70} p="md">
           <div
             style={{ display: "flex", alignItems: "center", height: "100%" }}
           >
+            {/* History burger */}
             <MediaQuery largerThan="sm" styles={{ display: "none" }}>
               <Burger
                 opened={opened}
@@ -95,44 +151,97 @@ export default function Page() {
                 mr="xl"
               />
             </MediaQuery>
-
+            {/* Title */}
             <Text>MyTextLog</Text>
           </div>
         </Header>
       }
     >
+      {/* Active activities */}
       <Stack justify="flex-start" spacing="xs">
-        {activeActivities.map(({ activityIndex, stop }, index) => (
-          <Group position="apart">
-            {activities[activityIndex]}
-            <Group>
-              <ActionIcon
-                onClick={() =>
-                  setActiveActivities(
-                    update(activeActivities, {
-                      [index]: { stop: { $set: !stop } },
-                    })
-                  )
-                }
-              >
-                {stop ? <MdPlayArrow /> : <MdPause />}
-              </ActionIcon>
-              <ActionIcon
-                onClick={() =>
-                  setActiveActivities(
-                    activeActivities.filter((v, i) => i !== index)
-                  )
-                }
-              >
-                <MdStop />
-              </ActionIcon>
-            </Group>
-          </Group>
-        ))}
-      </Stack>
+        {activeActivities
+          .slice()
+          .reverse() // reverse so newest ones are on top
+          .map(({ activityIndex, pause }, index) => {
+            // reverse index because index is from reversed copy of array
+            index = activeActivities.length - 1 - index;
 
+            return (
+              /* Active Activity */
+              <Group key={activityIndex} position="apart">
+                {/* Activity Type */}
+                {
+                  activityTypes[
+                    activities.current[activityIndex].activityTypeIndex
+                  ]
+                }
+                {/* Pause and stop active activity */}
+                <Group>
+                  {/* Pause and unpause active activity */}
+                  <ActionIcon
+                    onClick={
+                      pause
+                        ? // unpause active activity
+                          () => {
+                            // create new interval
+                            const intervals =
+                              activities.current[activityIndex].intervals;
+                            intervals.push({ start: new Date(), stop: null });
+
+                            // set pause to false
+                            setActiveActivities(
+                              update(activeActivities, {
+                                [index]: {
+                                  pause: { $set: false },
+                                },
+                              })
+                            );
+                          }
+                        : // pause active activity
+                          () => {
+                            // stop latest interval
+                            const intervals =
+                              activities.current[activityIndex].intervals;
+                            intervals[intervals.length - 1].stop = new Date();
+
+                            // set pause to true
+                            setActiveActivities(
+                              update(activeActivities, {
+                                [index]: {
+                                  pause: { $set: true },
+                                },
+                              })
+                            );
+                          }
+                    }
+                  >
+                    {pause ? <MdPlayArrow /> : <MdPause />}
+                  </ActionIcon>
+                  {/* Stop active activity */}
+                  <ActionIcon
+                    onClick={() => {
+                      // stop latest interval if not already
+                      const intervals =
+                        activities.current[activityIndex].intervals;
+                      intervals[intervals.length - 1].stop ??= new Date();
+
+                      // remove from active activities
+                      setActiveActivities(
+                        activeActivities.filter((v, i) => i !== index)
+                      );
+                    }}
+                  >
+                    <MdStop />
+                  </ActionIcon>
+                </Group>
+              </Group>
+            );
+          })}
+      </Stack>
+      {/* Activity starts */}
       <SimpleGrid spacing={"xs"} cols={4}>
-        {activities.map((activity, i) => (
+        {activityTypes.map((activity, i) => (
+          /* Start new active activities */
           <MediaQuery
             key={activity}
             smallerThan="sm"
@@ -141,13 +250,25 @@ export default function Page() {
             <Button
               size="lg"
               variant="subtle"
-              onClick={() =>
+              onClick={() => {
+                // adds new activity
+                activities.current.push({
+                  activityTypeIndex: i,
+                  intervals: [{ start: new Date(), stop: null }],
+                });
+
+                // adds new active activity with index being the latest activity
                 setActiveActivities(
                   update(activeActivities, {
-                    $push: [{ activityIndex: i, stop: false }],
+                    $push: [
+                      {
+                        activityIndex: activities.current.length - 1,
+                        pause: false,
+                      },
+                    ],
                   })
-                )
-              }
+                );
+              }}
             >
               <Stack justify="flex-start" spacing="xs">
                 <Center>

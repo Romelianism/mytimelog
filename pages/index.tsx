@@ -102,17 +102,17 @@ export default function Page() {
               {activities.current
                 .slice()
                 .reverse() // reverse so newest ones are on top
-                .map(({ activityTypeIndex, intervals }) => (
+                .map(({ activityTypeIndex, intervals }, i) => (
                   /* Invervals display */
-                  <Stack>
+                  <Stack key={i}>
                     {activityTypes[activityTypeIndex]}
                     <List>
                       {intervals
                         .slice()
                         .reverse() // reverse so newest ones are on top
-                        .map(({ start, stop }) => (
+                        .map(({ start, stop }, i) => (
                           /* Stop and start display */
-                          <List.Item>
+                          <List.Item key={i}>
                             <Group position="apart">
                               <Stack>
                                 {/* Stop display */}
